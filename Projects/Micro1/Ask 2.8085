@@ -1,0 +1,31 @@
+	LXI B,01F4H  ;dealy of 500 ms
+	MVI E,FEH    ;LSB is the first one that turns on (11111110) 
+BEGIN: 
+	LDA 2000H    ;load status from switches to accumulator
+	CALL DELB    ;delay of 500ms
+	RRC          ;rotate accumulator right
+	JNC BEGIN    ;if Cy == 1 FALSE then start again from BEGIN
+	RLC          ;rotate accumulator to the left (restore to first state)
+	RLC          ;rotate accumulator left
+	JNC LEFT     ;if Cy == 1 FALSE then jump to LEFT
+	JMP RIGHT    ;jump to RIGHT (happens when Cy == 1 TRUE)
+LEFT:
+	MOV A,E      ;store in the accumulator the state of the LED lights
+	STA 3000H    ;store accumulator content to memory (light the LEDs)
+	RLC          ;rotate accumulator (and light) to the left
+	MOV E,A      ;store the accumulator content in E
+	JMP BEGIN    ;jump to BEGIN
+RIGHT:            
+	MOV A,E      ;store in the accumulator the state of the LED lights
+	STA 3000H    ;store accumulator content to memory (light the LEDs)
+	RRC          ;rotate accumulator (and light) to the right
+	MOV E,A      ;store the accumulator content in E
+	JMP BEGIN    ;jump to BEGIN
+	
+END                 ;never gets reached, lights continue to move
+
+
+
+
+
+

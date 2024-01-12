@@ -1,0 +1,32 @@
+	IN 10H       ;deactivating memory protection
+	MVI A,00H    ;move immidiate 0 (in hex) to accumulator
+	LXI H,0900H  ;load address 0900H into the HL register pair
+       LXI B,0000H  ;initialise BC (ones)
+	MOV M,A      ;move accumulator to address pointed by HL
+
+SAVE_VALUE:
+       INX H        ;add 1 to H
+	INR A        ;add 1 to the accumulator
+	MOV M,A      ;move accumulator to address pointed by HL
+	CPI 7FH      ;true if accmulator < 127
+	JNZ SAVE_VALUE    ;if true jump to SAVE_VALUE
+
+START_B:
+	MOV A,M      ;move address pointed by HL to accumulator
+	MVI D,09H    ;initialise E wih value 9 (for iteration)
+
+NUM:
+	RRC           ;rotate accumulator right
+	DCR D         ;subtract 1 from D
+	JZ CONTINUE   ;if D=0 continue
+	JNC NUM       ;If carry flag = 1 then jump to NUM
+	INX B         ;add 1 to the counter
+	JMP NUM       ;jump to NUM
+
+CONTINUE:
+	RLC          ;rotate accumulator left because last was unneeded
+	DCR L        ;decrease L
+	JNZ START_B  ;if L != 0 jump to START_B
+	MOV A,C      ;move C to the accumulator
+	STA 3000H    ;save values and turn on the leds
+END

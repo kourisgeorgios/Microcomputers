@@ -1,0 +1,54 @@
+ASK_4:
+	MVI D,00H	;initialise D
+	LDA 2000H	;load the input from the switches to the accumulator
+	MOV B,A	;save value from accumulator to B
+	ANI 01H	;B0-save value to accumulator->accumulator AND 00000001
+	MOV C,A	;save accumulator to C
+	MOV A,B	;save B to the accumulator (switches values)
+	ANI 02H	;A0-save value to accumulator->accumulator AND 00000010
+	RRC		;rotate accumulator right
+	ANA C		;accumulator->accumulator AND C
+	MOV D,A	;save accumulator to D
+	MOV A,B	;save B to accumulator
+	ANI 04H	;B1-save value to accumulator->accumulator AND 00000100
+	MOV C,A	;save accumulator to C
+	MOV A,B	;save accumulator to B
+	ANI 08H	;A1-save value to accumulator->accumulator AND 00001000
+	RRC		;rotate accumulator right
+	ANA C		;accumulator->accumulator AND C
+	RRC		;rotate accumulator right
+	MOV E,A	;save accumulator to E
+	RRC		;rotate accumulator right
+	ORA D		;accumulator->accumulator OR D
+	ORA E		;accumulator->accumulator OR E
+	MOV D,A	;save accumulator to D
+	MOV A,B	;save B to accumulator
+	ANI 10H	;B2-save value to accumulator->accumulator AND 00010000
+	MOV C,A	;save accumulator to C
+	MOV A,B	;save B to accumulator
+	ANI 20H	;A2-save value to accumulator->accumulator AND 00100000
+	RRC		;rotate accumulator right
+	XRA C		;accumulator->accumulator XOR C
+	MOV E,A	;save accumulator to E
+	MOV A,B	;save B to accumulator
+	ANI 40H	;B3-save value to accumulator->accumulator AND 01000000
+	MOV C,A	;save accumulator to C
+	MOV A,B	;save B to accumulator
+	ANI 80H	;A3-save value to accumulator->accumulator AND 10000000
+	RRC		;rotate accumulator right
+	XRA C		;accumulator->accumulator XOR C
+	RRC		;rotate accumulator right
+	RRC		;rotate accumulator right
+	MOV B,A	;save accumulator to B
+	RRC		;rotate accumulator right
+	ORA D		;accumulator->accumulator OR D
+	MOV D,A	;save accumulator to D
+	MOV A,B	;save B to accumulator
+	ORA E		;accumulator->accumulator OR E
+	RRC		;rotate accumulator right
+	RRC		;rotate accumulator right
+	ORA D		;accumulator->accumulator OR D
+	CMA		;reverse logic (1s light the LEDs)
+	STA 3000H	;Turn on the correct LEDs
+	JMP ASK_4	;jump to the first line
+END

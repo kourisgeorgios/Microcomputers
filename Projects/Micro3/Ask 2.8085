@@ -1,0 +1,70 @@
+	IN 10H		;make content op the port available to the accumulator
+	MVI A,0DH	;move value 0DH to the accumulator
+	SIM		;set interupt mask (RST 6.5)
+	EI		;enable interupt
+	MVI B,06H	;move value 06H to B
+	LXI H,0A00H	;load address 0A00H to register H
+
+J1:	MVI M,10H	;move value 10H to M
+	INX H		;increment value of register H
+	DCR B		;decrease value of B by one
+	JNZ J1		;jump to J1 if B != 0
+	MVI D,70H	;move value 70H (=112) to D (=K1)
+	MVI E,BBH	;move value BBH (=187) to E (=K2)
+	PUSH D		;store value of D to the stack
+	LXI D,0A00H	;load address 0A00H to register H
+	CALL STDM	;call subroutine STDM
+	POP D		;pop the value from the stack to D
+	CALL DCD	;call subroutine DCD
+
+J2:	JMP J2		;jump to J2 (until we have input)
+
+INTR_ROUTINE:		;interupt routine
+	CALL KIND	;call subroutine kind
+	STA 0A03H	;store value of accumulator to address 0A05H
+	RLC		;rotate accumulator left
+	RLC		; -//-
+	RLC		; -//-
+	RLC		; -//-
+	MOV B,A	;move value of accumulator to B
+	CALL KIND	;call subroutine kind
+	STA 0A02H	;store value of accumulator to address 0A04H
+	ADD B		;add value of B to the accumulator
+	
+	CMP D		;compare D with accumulator
+	JZ CASE1	;jump to CASE1 if D = A
+	JC CASE1	;jump to CASE1 if D > A
+	JMP CASE2A	;else jump to CASE2A (if D < A)
+
+CASE1:			;case number is in [00H, K1]
+	MVI A,01H	;move value 01H to accumulator (lsb LED)
+	JMP DISPLAY	;jump to DISPLAY (display it)
+
+CASE2A:		
+	CMP E		;compare E with accumulator
+	JZ CASE2B	;jump to CASE1 if E = A
+	JC CASE2B	;jump to CASE1 if E > A
+	JMP CASE3	;else jump to CASE2A (if E < A)
+
+CASE2B:		;case number is in (K1, K2]
+	MVI A,02H	;move value 02H to accumulator (second lsb LED)
+	JMP DISPLAY	;jump to DISPLAY (display it)
+
+CASE3:			;case number is in (K2, FFH]
+	MVI A,04H	;move value 04H to accumulator (third lsb LED)
+
+DISPLAY:
+	CMA		;find complement of A (LEDs on at 0)
+	STA 3000H	;light the LEDs
+
+	PUSH D		;store value of D to the stack
+	LXI D,0A00H	;load address 0A00H to register D
+	CALL STDM	;call subroutine STDM
+	POP D		;pop the value from the stack to D
+	EI		;enable interupt
+
+LOOP_DCD:
+	CALL DCD	;call subroutine DCD
+	JMP LOOP_DCD	;jump to LOOP_DCD
+
+END

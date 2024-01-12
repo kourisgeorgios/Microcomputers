@@ -1,0 +1,47 @@
+	MVI D,C8H     ;D = 200 since we want 200/10 = 20 seconds
+	MVI A,FFH     ;we set the accumulator to off as the default
+	LXI B,0064H   ;delay of 1/10 seconds
+BEGIN:
+	LDA 2000H	;load the input from dip switches to the accumulator
+	RLC		;rotate accumulator left to check MSB
+	JNC OFF1	;if MSB == off is off jump to OFF1
+	JMP BEGIN	;jump to BEGIN
+ON1:			
+	LDA 2000H	;load the input from dip switches to the accumulator
+	RLC		;rotate accumulator left to check MSB
+	JNC OFF2	;jump to OFF2 if MSB = off (off-on-off)
+	JMP ON1	;jump to ON1
+OFF1:			
+	LDA 2000H	;load the input from dip switches to the accumulator
+	RLC		;rotate accumulator left to check MSB
+	JC ON1		;if MSB == on jump to ON1
+	JMP OFF1	;Else wait until it's on
+OFF2:
+	LDA 2000H	;load the input from dip switches to the accumulator
+	RLC		;rotate accumulator left to check MSB
+	JC ON2		;if MSB == on jump to ON2
+	MVI A,00H	;else set accumulator to on
+	STA 3000H	;then turn on the leds
+	CALL DELB	;call the delb to start counting the seconds
+	DCR D		;decrease D by one
+	JNZ OFF2	;jump to OFF2 if D != 0
+	MVI A,FFH	;set accumulator to off
+	STA 3000H	;turn off the leds
+	JMP OFF1	;jump to OFF1
+ON2:		
+	LDA 2000H	;load the input from dip switches to the accumulator
+	RLC		;rotate accumulator left to check MSB
+	JNC RESTART	;if MSB != 0 jump to RESTART
+	MVI A,00H	;set accumulator to on
+	STA 3000H	;turn on the leds
+	CALL DELB	;call delb
+	DCR D		;decrease D by one
+	JNZ ON2	;jump to ON2 if D != 0
+	MVI A,FFH	;set accumulator to off
+	STA 3000H	;turn off the lights
+	JMP OFF1	;jump to OFF1
+RESTART:		
+	MVI D,C8H	;set D to 200 to reset the timer
+	JMP OFF2	;jump to OFF2
+
+END

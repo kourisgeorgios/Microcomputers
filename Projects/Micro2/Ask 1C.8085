@@ -1,0 +1,37 @@
+	IN 10H       ;deactivating memory protection
+	MVI A,00H    ;move immidiate 0 (in hex) to accumulator
+	LXI H,0900H  ;load address 0900H into the HL register pair
+	MOV M,A      ;move accumulator to address pointed by HL
+
+SAVE_VALUE:
+       INX H        ;add 1 to H
+	INR A        ;add 1 to the accumulator
+	MOV M,A      ;move accumulator to address pointed by HL
+	CPI 7FH      ;true if accmulator < 127
+	JNZ SAVE_VALUE    ;if true jump to SAVE_VALUE
+
+	MVI E,7FH    ;load value 7FH to E
+	MVI D,00H    ;load value 0 to D
+	MOV A,M      ;move address pointed by HL to the accumulator
+	
+CHECK_BOUNDARIES:
+	CPI 61H      
+	JNC CASE_FALSE  ;jump to CASE_FALSE if accumulator > 61H
+	CPI 10H      
+	JC CASE_FALSE   ;jump to CASE_FALSE if accumulator < 10H
+	INR D           ;incread D by 1
+
+CASE_FALSE:	
+	INR L        ;increase L by 1
+	MOV A,M      ;move address pointed by HL to the accumulator
+	DCR E        ;decrease E by 1
+	JNZ CHECK_BOUNDARIES   ;if E != 0 jump to CHEST_BOUNDARIES
+	CPI 61H      
+	JNC FINISH       ;jump to FINISH if accumulator > 61H
+	CPI 10H       
+	JC FINISH       ;jump to FINISH if accumulator < 10H
+	INR D        ;increase D by 1	
+FINISH:		
+	MOV A,D      ;move D to the accumulator
+	STA 3000H    ;turn on the leds
+	END

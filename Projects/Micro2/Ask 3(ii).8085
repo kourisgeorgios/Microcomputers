@@ -1,0 +1,28 @@
+BEGIN:
+	CALL KIND   ;call subroutine KIND from μLab notes
+	CPI 00H     ;check if accumulator is zero
+	JZ NULL     ;if accumulator is zero, go to NULL
+	CPI 09H     ;Check if accumulator is equal to 9
+	JNC NULL    ;if accumulator is greater than or equal to 9, go to NULL
+	MOV E,A     ;save value of accumulator to E
+	MVI A,00H   ;clear accumulator A-set to 0
+	DCR E       ;decrease E by 1
+	JZ TURN_ON  ;if register E is 0, jump to TURN_ON
+	INR A       ;increase accumulator by 1
+
+CHECK:
+	DCR E       ;decrease E by 1
+	JZ TURN_ON  ;if register E is zero, jump to TURN_ON
+	RLC         ;rotate accumulator left
+	INR A       ;increase accumulator by 1
+	JMP CHECK   ;jump to CHECK
+
+TURN_ON:
+	STA 3000H   ;turn on the LEDs
+	JMP BEGIN   ;jump to BEGIN to check again
+
+NULL:			;case: button pressed not 1 to 8
+	MVI A,FFH   ;load accumulator with value FFH->LEDs off
+	STA 3000H   ;turn on the LEDs (they will be off)
+	JMP BEGIN   ;jump to BEGIN to check again
+END

@@ -1,0 +1,24 @@
+BEGIN:	
+	MVI D,00H	;initialize D (D=0)
+	MVI E,08H	;initialize E (E=0)
+	LDA 2000H	;load status of switches		
+SEARCH:		;we search for the right most switch that is on
+	RRC		;rotate accumuator right
+	DCR E		;decrease E by one
+	JZ NULL	;jump to NULL if E==0 (all switche off)
+	INR D		;increase D by one
+	JNC SEARCH	;jump to SEARCH if current switch off
+	DCR D		;decrease D by one
+	MVI A,FEH	;set value to accumulator
+FOUND:			;we found the switch!
+	RLC		;rotate accumulator left
+	DCR D		;decrease D by one
+	JNZ FOUND	;jump to FOUND if current switch off
+	STA 3000H	;save the values to the leds (turn them on)
+	JMP BEGIN	;jumpt to BEGIN
+NULL:			;case that all swithces are off	
+	MVI A,FFH	;set value to the accumulator
+	STA 3000H	;save the values to the leds (all are off)
+	JMP BEGIN	;jump to BEGIN
+END	
+		

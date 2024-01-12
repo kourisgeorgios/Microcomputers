@@ -1,0 +1,73 @@
+	MVI A,10H  	;move value 10H to the accumulator
+	STA 0B00H	;set up right-most digit in display (1st segment)
+	STA 0B01H	;set up seconf right most digit in display (2nd segment)
+	STA 0B02H	;only 0B00H and 0B01H are used
+	STA 0B03H	;the others are set up to light them out
+	STA 0B04H	;if they're not they will display zeros
+	STA 0B05H	
+	MVI A,0DH	;move value 0DH to the accumulator
+	SIM		;set interupt mask
+	EI		;enable interupts
+BEGIN:
+	JMP BEGIN	;jumpt to BEGIN
+INTR_ROUTINE:
+	POP H		;pop out 2-Bytes from the top of the stack through H
+	EI		;enable interrupts
+	MVI A,00H	;move value 0 to the accumulator
+	STA 3000H	;turn on the LEDs (all will light up)
+	MVI H,06H 	;count down, starting from 60
+	MOV A,H	;move value of H to the accumulator
+	DCR A		;decrease accumulator by one
+	STA 0B01H	;save value to the 2nd segment (the tens)
+ONES:
+	MVI A,09H	;move value 09H to the accumulator (9 seconds)
+USE_DISPLAY:
+	STA 0B00H	;save value to the 1st segment 
+	CALL DISPLAY	;show display
+	DCR A 		;decrease accumulator by one
+	CPI 00H 	;compare accumulator to 0
+	JNZ USE_DISPLAY ;if A != 0 jump to LIGHTS_ON (9 sec have yet to pass)
+	CALL DISPLAY_ZERO	;call function to display 0
+	DCR H		;decrease H by one
+	JZ EXIT	;if H == 0 jump to EXIT
+	MOV A,H	;move value of H to the accumulator
+	DCR A		;decrease accumulator by one
+	STA 0B01H	;save value to the second segment
+	JMP ONES	;jump to seconds
+EXIT:
+	MVI A,FFH 	;move value FFH to the accumulator
+	STA 3000H	;turn on the LEDs (because of value of A they're off)
+	JMP BEGIN	;jump to BEGIN
+DISPLAY: 	
+	LXI B,0064H 	;load adress 0064H to B (100ms)
+	LXI D,0B00H	;load adress 0B00H to D
+	PUSH PSW	;push the value of program status word in memory stack
+	PUSH H		;push value of H in memory stack
+	PUSH D		;push value of D in memory stack
+	PUSH B		;push value of B in memory stack
+	CALL STDM	;call function STDM
+	MVI A,28H 	;move value 28H (40) to the accumulator
+			;normally, it should have been 0AH (10) so that
+			;we had 10*100ms. Unfortunately, the emulator
+			;runs too fast so we had to quadruple the delay
+			;to have one second
+1SEC:
+	CALL DCD	;call function DCD	
+	CALL DELB	;call function DELB for delay
+	DCR A		;decrease accumulator by one
+	CPI 00H	;compare accumulator to 0
+	JNZ 1SEC	;if A != 0 jump to 1SEC
+	POP B		;pop out 2-Bytes from the top of the stack through B
+	POP D		;pop out 2-Bytes from the top of the stack through D
+	POP H		;pop out 2-Bytes from the top of the stack through H
+	POP PSW	;pop out 2-Bytes from the top of the stack through PSW
+	RET		;return from the subroutine
+DISPLAY_ZERO:
+	MVI A,00H	;move value 0 to the accumulator
+	STA 0B00H	;save value to the 1st segment 
+	CALL DISPLAY	;call function DISPLAY
+	CALL DELB	;call function DELB for delay
+	RET		;return from the subroutine
+	
+END
+	

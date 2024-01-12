@@ -1,0 +1,36 @@
+BEGIN: 
+	LDA 2000H  ;load status of dip switches to the accumulator
+	CPI 64H    ;store in Cy: accumulator >= 100 (64H is 100d)
+	JNC LSB_OVERFLOW  ;if Cy == 1 (accumulator > 99) jump to LSB_OVERFLOW
+	MVI B,FFH  ;FFH complement is -1
+DECA:
+	INR B      ;increase B by 1
+	SUI 0AH    ;subtraction of 10 from accumulator
+	JNC DECA   ;if Cy == 0 (A-10>0) jump to DECA (continues until A-10<0)
+	ADI 0AH    ;add 10 to the accumulator so that it is positive
+	MOV E,A    ;store the accumulator content in E (LED lights)
+	MOV A,B    ;store the content of B in the accumulator
+	RLC        ;rotate accumulator to the left four times
+	RLC        ;so that we can saves the value of ones in
+	RLC        ;the four LSB led lights
+	RLC        ;
+	ADD E      ;add content of E in the accumulator 
+	CMA        ;save in the accumulator its complement
+	STA 3000H  ;save A to the output (light is ON at 0)
+       JMP BEGIN  ;jump to BEGIN
+LSB_OVERFLOW:
+	CPI C8H    ;store in Cy: accumulator >= 200 (C8H is 200d)
+	JNC MSB_OVERFLOW  ;if Cy == 1 (accumulator>199) jump to MSB_OVERFLOW
+	MVI A,F0H  ;save value 11110000 in the accumulator
+	STA 3000H  ;save A to the output (light is ON at 0)
+	MVI A,FFH  ;save value 11111111 in the accumulator
+	STA 3000H  ;save A to the output (light is ON at 0)
+	JMP BEGIN  ;jump to BEGIN
+MSB_OVERFLOW:
+	MVI A,0FH  ;save value 00001111 in the accumulator
+	STA 3000H  ;save A to the output (light is ON at 0)
+	MVI A,FFH  ;save value 11111111 in the accumulator
+	STA 3000H  ;save A to the output (light is ON at 0)
+	JMP BEGIN  ;jump to BEGIN
+END
+	

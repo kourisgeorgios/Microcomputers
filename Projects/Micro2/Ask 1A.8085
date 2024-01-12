@@ -1,0 +1,12 @@
+	IN 10H       ;deactivating memory protection
+	MVI A,00H    ;move immidiate 0 (in hex) to accumulator
+	LXI H,0900H  ;load address 0900H into the HL register pair
+	MOV M,A      ;move accumulator to address pointed by HL
+
+SAVE_VALUE:
+       INX H        ;add 1 to H
+	INR A        ;add 1 to the accumulator
+	MOV M,A      ;move accumulator to address pointed by HL
+	CPI 7FH      ;true if accmulator < 127
+	JNZ SAVE_VALUE    ;if true jump to SAVE_VALUE
+END
